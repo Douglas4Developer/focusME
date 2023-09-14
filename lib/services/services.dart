@@ -37,14 +37,17 @@ class AuthManager {
 
         // Enviar a imagem para o armazenamento (Firebase Storage) e armazenar o URL no Firestore.
         if (imagem != null) {
-          final Reference storageRef = FirebaseStorage.instance
+          final storage = FirebaseStorage.instance;
+
+          final imageRef = storage
               .ref()
+              .child('usuarios')
               .child('imagens/${user.uid}/avatar.jpg');
 
-          final UploadTask uploadTask = storageRef.putFile(File(imagem.path));
+          final UploadTask uploadTask = imageRef.putFile(File(imagem.path));
           await uploadTask.whenComplete(() => null);
 
-          final imageUrl = await storageRef.getDownloadURL();
+          final imageUrl = await imageRef.getDownloadURL();
 
           // Atualizar o documento do usuário com o URL da imagem no Firestore
           await _firestore.collection('usuarios').doc(user.uid).update({

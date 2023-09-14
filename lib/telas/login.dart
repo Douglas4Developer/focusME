@@ -1,17 +1,25 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:tdah_app/services/services.dart';
 import 'package:tdah_app/telas/HomeScreen.dart';
 import 'package:tdah_app/telas/resgister_page.dart'; // Importe a tela de registro se já a tiver
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    String email = "";
-    String password = "";
-    AuthManager _authService = AuthManager();
+  _LoginPageState createState() => _LoginPageState();
+}
 
+class _LoginPageState extends State<LoginPage> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  bool _isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
         child: Center(
@@ -22,7 +30,7 @@ class LoginPage extends StatelessWidget {
               children: [
                 const FlutterLogo(size: 80),
                 const SizedBox(height: 20),
-                Text(
+                const Text(
                   'Bem-vindo de volta!',
                   style: TextStyle(
                     fontSize: 20,
@@ -33,46 +41,63 @@ class LoginPage extends StatelessWidget {
                 _buildTextField(
                   labelText: 'Email',
                   prefixIcon: Icons.email,
-                  onChanged: (value) {
-                    email = value;
-                  },
+                  controller: _emailController,
                 ),
                 const SizedBox(height: 10),
                 _buildTextField(
                   labelText: 'Senha',
                   prefixIcon: Icons.lock,
                   obscureText: true,
-                  onChanged: (value) {
-                    password = value;
-                  },
+                  controller: _passwordController,
                 ),
                 const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (_isValidCredentials(email, password)) {
-                      if (_isValidCredentials == true) {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const HomeScreen()),
-                        );
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Credenciais inválidas')),
-                        );
-                      }
-                    }
-                  },
-                  child: const Text('Entrar'),
-                ),
+                _isLoading
+                    ? CircularProgressIndicator()
+                    : ElevatedButton(
+                        onPressed: () async {
+                          setState(() {
+                            _isLoading = true;
+                          });
+                          final email = _emailController.text.trim();
+                          final password = _passwordController.text.trim();
+
+                          try {
+                            final userCredential =
+                                await _auth.signInWithEmailAndPassword(
+                              email: email,
+                              password: password,
+                            );
+                            if (userCredential.user != null) {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const HomeScreen(),
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Credenciais inválidas'),
+                              ),
+                            );
+                          } finally {
+                            setState(() {
+                              _isLoading = false;
+                            });
+                          }
+                        },
+                        child: const Text('Entrar'),
+                      ),
                 const SizedBox(height: 10),
                 TextButton(
                   onPressed: () {
                     // Navegue para a tela de registro
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => RegistroPage()),
+                      MaterialPageRoute(
+                        builder: (context) => RegistroPage(),
+                      ),
                     );
                   },
                   child: Text(
@@ -93,24 +118,16 @@ class LoginPage extends StatelessWidget {
   Widget _buildTextField({
     required String labelText,
     required IconData prefixIcon,
-    required ValueChanged<String> onChanged,
+    required TextEditingController controller,
     bool obscureText = false,
   }) {
     return TextField(
+      controller: controller,
       decoration: InputDecoration(
         labelText: labelText,
         prefixIcon: Icon(prefixIcon),
       ),
-      onChanged: onChanged,
       obscureText: obscureText,
     );
-  }
-
-  bool _isValidCredentials(String email, String password) {
-    // Aqui você pode implementar suas próprias validações
-    // Por exemplo, verificar se o email e a senha são válidos
-
-    // Por exemplo:
-    return email == 'douglas' && password == '1';
   }
 }
