@@ -43,6 +43,11 @@ dependencies:
   firebase_storage: ^11.2.6
   translator: ^0.1.7
   webview_flutter: ^4.2.4
+  fluro: ^2.0.5
+  url_launcher: ^6.1.14
+  flutter_local_notifications: ^15.1.1
+  timezone: ^0.9.2
+  intl: ^0.17.0
   
 
 dev_dependencies:

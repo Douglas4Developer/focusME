@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
+
+import 'package:url_launcher/url_launcher_string.dart';
 
 class Dica {
   final String titulo;
@@ -25,8 +28,8 @@ class _DicasScreenState extends State<DicasScreen> {
   }
 
   Future<void> _loadDicas() async {
-    final apiKey = 'bfff9459ffc04d1b9714fcb291e48a44';
-    final apiUrl = 'https://newsapi.org/v2/everything?q=tdah&apiKey=$apiKey';
+    const apiKey = 'bfff9459ffc04d1b9714fcb291e48a44';
+    const apiUrl = 'https://newsapi.org/v2/everything?q=tdah&apiKey=$apiKey';
 
     try {
       final response = await http.get(Uri.parse(apiUrl));
@@ -56,7 +59,7 @@ class _DicasScreenState extends State<DicasScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Dicas para TDAH'),
+        title: const Text('Dicas para TDAH'),
       ),
       body: ListView.builder(
         itemCount: _dicas.length,
@@ -70,47 +73,28 @@ class _DicasScreenState extends State<DicasScreen> {
   Widget _buildDicaCard(Dica dica) {
     return Card(
       elevation: 4.0,
-      margin: EdgeInsets.all(8.0),
+      margin: const EdgeInsets.all(8.0),
       child: Column(
         children: [
           ListTile(
             title: Text(dica.titulo),
           ),
           Padding(
-            padding: EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(16.0),
             child: Text(dica.descricao),
           ),
           ElevatedButton(
-            onPressed: () {
-              // Navegar para a notícia completa usando WebView
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => DicaWebView(url: dica.url),
-                ),
-              );
+            onPressed: () async {
+              final url = dica.url;
+              if (url != '') {
+                await launchUrlString(url);
+              } else {
+                throw 'Não foi possível abrir a URL: $url';
+              }
             },
-            child: Text('Ver notícia completa'),
+            child: const Text('Ver notícia completa'),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class DicaWebView extends StatelessWidget {
-  final String url;
-
-  DicaWebView({required this.url});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Notícia Completa'),
-      ),
-      body: DicaWebView(
-        url: url,
       ),
     );
   }

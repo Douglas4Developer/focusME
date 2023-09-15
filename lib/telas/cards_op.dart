@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tdah_app/telas/dicas.dart';
+import 'package:tdah_app/telas/humor.dart';
 
 class OptionCard extends StatelessWidget {
   final IconData icon;
@@ -55,7 +56,7 @@ List<OptionCard> options = [
   OptionCard(
     icon: Icons.mood,
     title: 'Humor',
-    page: DicasScreen(),
+    page: CadastroHumorScreen(),
   ),
   OptionCard(
     icon: Icons.table_rows,
