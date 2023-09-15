@@ -36,7 +36,7 @@ class _CadastroLembreteScreenState extends State<CadastroLembreteScreen> {
 
     await flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
-      onSelectNotification: onSelectNotification,
+      // onSelectNotification: onSelectNotification,
     );
   }
 
@@ -46,11 +46,23 @@ class _CadastroLembreteScreenState extends State<CadastroLembreteScreen> {
     }
   }
 
+  tz.TZDateTime _getNow() {
+    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+    return tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      now.hour,
+      now.minute,
+    );
+  }
+
   Future<void> scheduleNotification(
       DateTime scheduledDate, String title) async {
-    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+    final tz.TZDateTime now = _getNow();
     final tz.TZDateTime scheduledDateTime = tz.TZDateTime(
-      tz.local,
+      tz.getLocation('America/Sao_Paulo'),
       scheduledDate.year,
       scheduledDate.month,
       scheduledDate.day,
@@ -58,16 +70,15 @@ class _CadastroLembreteScreenState extends State<CadastroLembreteScreen> {
       _selectedTime!.minute,
     );
 
-    if (scheduledDateTime.isBefore(now)) {
-      debugPrint('Data/hora selecionada está no passado');
-      return;
-    }
+    final tz.TZDateTime effectiveScheduledDateTime =
+        scheduledDateTime.isBefore(now.add(Duration(minutes: 1)))
+            ? now.add(const Duration(minutes: 1))
+            : scheduledDateTime;
 
     const AndroidNotificationDetails androidNotificationDetails =
         AndroidNotificationDetails(
       'channel_id',
       'Channel Name',
-      // 'Channel Description',
       priority: Priority.high,
       importance: Importance.max,
     );
@@ -78,15 +89,14 @@ class _CadastroLembreteScreenState extends State<CadastroLembreteScreen> {
       0,
       title,
       'Lembrete',
-      scheduledDateTime,
+      effectiveScheduledDateTime,
       notificationDetails,
-      androidAllowWhileIdle: true,
       payload: 'Notificação payload',
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
     );
 
-    debugPrint('Notificação agendada para $scheduledDateTime');
+    debugPrint('Notificação agendada para $effectiveScheduledDateTime');
   }
 
   Future<void> _showDatePicker() async {
