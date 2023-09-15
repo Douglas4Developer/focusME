@@ -29,7 +29,11 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const FlutterLogo(size: 80),
+                Image.asset(
+                  'assets/letra.png',
+                  width: 350,
+                  height: 120,
+                ),
                 const SizedBox(height: 20),
                 const Text(
                   'Bem-vindo de volta!',

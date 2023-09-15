@@ -27,7 +27,10 @@ class AuthManager {
       final User? user = userCredential.user;
 
       if (user != null) {
-        // Adicionar informações do usuário ao Firestore
+        // Atualize o perfil do usuário com nome e foto
+        await user.updateDisplayName(nome);
+
+        // Adicione informações adicionais do usuário ao Firestore
         await _firestore.collection('usuarios').doc(user.uid).set({
           'nome': nome,
           'email': email,
@@ -48,6 +51,9 @@ class AuthManager {
           await uploadTask.whenComplete(() => null);
 
           final imageUrl = await imageRef.getDownloadURL();
+
+          // Atualizar o perfil do usuário com a URL da imagem
+          await user.updatePhotoURL(imageUrl);
 
           // Atualizar o documento do usuário com o URL da imagem no Firestore
           await _firestore.collection('usuarios').doc(user.uid).update({
