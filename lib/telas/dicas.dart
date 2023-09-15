@@ -1,4 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+class Dica {
+  final String titulo;
+  final String descricao;
+  final String url; // URL da notícia completa
+
+  Dica({required this.titulo, required this.descricao, required this.url});
+}
 
 class DicasScreen extends StatefulWidget {
   @override
@@ -6,31 +16,40 @@ class DicasScreen extends StatefulWidget {
 }
 
 class _DicasScreenState extends State<DicasScreen> {
-  List<Dica> _dicas = []; // Lista de dicas
+  List<Dica> _dicas = [];
 
   @override
   void initState() {
     super.initState();
-    // Carregar dicas iniciais (pode ser de uma API ou banco de dados)
     _loadDicas();
   }
 
-  void _loadDicas() {
-    // Aqui você pode buscar as dicas de uma fonte externa, como uma API
-    // Para este exemplo, vou adicionar algumas dicas fictícias
-    setState(() {
-      _dicas = [
-        Dica(
-          titulo: 'Dica 1',
-          descricao: 'Esta é a descrição da Dica 1.',
-        ),
-        Dica(
-          titulo: 'Dica 2',
-          descricao: 'Esta é a descrição da Dica 2.',
-        ),
-        // Adicione mais dicas conforme necessário
-      ];
-    });
+  Future<void> _loadDicas() async {
+    final apiKey = 'bfff9459ffc04d1b9714fcb291e48a44';
+    final apiUrl = 'https://newsapi.org/v2/everything?q=tdah&apiKey=$apiKey';
+
+    try {
+      final response = await http.get(Uri.parse(apiUrl));
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+
+        if (data.containsKey('articles')) {
+          final List<dynamic> articles = data['articles'];
+          setState(() {
+            _dicas = articles
+                .map((item) => Dica(
+                      titulo: item['title'] ?? '',
+                      descricao: item['description'] ?? '',
+                      url: item['url'] ?? '', // URL da notícia completa
+                    ))
+                .toList();
+          });
+        }
+      }
+    } catch (e) {
+      print('Erro ao carregar notícias: $e');
+    }
   }
 
   @override
@@ -61,15 +80,38 @@ class _DicasScreenState extends State<DicasScreen> {
             padding: EdgeInsets.all(16.0),
             child: Text(dica.descricao),
           ),
+          ElevatedButton(
+            onPressed: () {
+              // Navegar para a notícia completa usando WebView
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DicaWebView(url: dica.url),
+                ),
+              );
+            },
+            child: Text('Ver notícia completa'),
+          ),
         ],
       ),
     );
   }
 }
 
-class Dica {
-  final String titulo;
-  final String descricao;
+class DicaWebView extends StatelessWidget {
+  final String url;
 
-  Dica({required this.titulo, required this.descricao});
+  DicaWebView({required this.url});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Notícia Completa'),
+      ),
+      body: DicaWebView(
+        url: url,
+      ),
+    );
+  }
 }

@@ -1,4 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:tdah_app/telas/HomeScreen.dart';
 import 'package:tdah_app/telas/login.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -21,12 +23,23 @@ class _SplashScreenState extends State<SplashScreen> {
     // Aguarde alguns segundos para simular o tempo da tela de splash
     await Future.delayed(const Duration(seconds: 3));
 
-    // Navegue para a tela principal ou para onde for apropriado
-    // ignore: use_build_context_synchronously
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginPage()),
-    );
+    final FirebaseAuth _auth = FirebaseAuth.instance;
+    final User? currentUser = _auth.currentUser;
+
+    if (currentUser != null) {
+      // O usuário já está logado, vá para a tela principal
+      // ignore: use_build_context_synchronously
+      await Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
+    } else {
+      // O usuário não está logado, vá para a tela de login
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+      );
+    }
   }
 
   @override
