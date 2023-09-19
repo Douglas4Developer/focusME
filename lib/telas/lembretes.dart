@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:tdah_app/models/lembretes_model.dart';
-import 'package:timezone/data/latest.dart' as tz;
-import 'package:timezone/timezone.dart' as tz;
 import 'package:intl/intl.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:tdah_app/models/lembretes_model.dart';
 
 class CadastroLembreteScreen extends StatefulWidget {
   @override
@@ -11,9 +9,7 @@ class CadastroLembreteScreen extends StatefulWidget {
 }
 
 class _CadastroLembreteScreenState extends State<CadastroLembreteScreen> {
-  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
-
+  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   final TextEditingController _tituloController = TextEditingController();
   final TextEditingController _descricaoController = TextEditingController();
   DateTime? _selectedDate;
@@ -22,82 +18,10 @@ class _CadastroLembreteScreenState extends State<CadastroLembreteScreen> {
   @override
   void initState() {
     super.initState();
-    tz.initializeTimeZones();
-    initializeNotifications();
+//
   }
 
-  void initializeNotifications() async {
-    const AndroidInitializationSettings androidInitializationSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-    const InitializationSettings initializationSettings =
-        InitializationSettings(
-      android: androidInitializationSettings,
-    );
-
-    await flutterLocalNotificationsPlugin.initialize(
-      initializationSettings,
-      // onSelectNotification: onSelectNotification,
-    );
-  }
-
-  Future onSelectNotification(String? payload) async {
-    if (payload != null) {
-      debugPrint('Notificação selecionada: $payload');
-    }
-  }
-
-  tz.TZDateTime _getNow() {
-    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
-    return tz.TZDateTime(
-      tz.local,
-      now.year,
-      now.month,
-      now.day,
-      now.hour,
-      now.minute,
-    );
-  }
-
-  Future<void> scheduleNotification(
-      DateTime scheduledDate, String title) async {
-    final tz.TZDateTime now = _getNow();
-    final tz.TZDateTime scheduledDateTime = tz.TZDateTime(
-      tz.getLocation('America/Sao_Paulo'),
-      scheduledDate.year,
-      scheduledDate.month,
-      scheduledDate.day,
-      _selectedTime!.hour,
-      _selectedTime!.minute,
-    );
-
-    final tz.TZDateTime effectiveScheduledDateTime =
-        scheduledDateTime.isBefore(now.add(Duration(minutes: 1)))
-            ? now.add(const Duration(minutes: 1))
-            : scheduledDateTime;
-
-    const AndroidNotificationDetails androidNotificationDetails =
-        AndroidNotificationDetails(
-      'channel_id',
-      'Channel Name',
-      priority: Priority.high,
-      importance: Importance.max,
-    );
-    const NotificationDetails notificationDetails =
-        NotificationDetails(android: androidNotificationDetails);
-
-    await flutterLocalNotificationsPlugin.zonedSchedule(
-      0,
-      title,
-      'Lembrete',
-      effectiveScheduledDateTime,
-      notificationDetails,
-      payload: 'Notificação payload',
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-    );
-
-    debugPrint('Notificação agendada para $effectiveScheduledDateTime');
-  }
+  // Restante do código permanece o mesmo
 
   Future<void> _showDatePicker() async {
     final DateTime picked = (await showDatePicker(
@@ -127,11 +51,52 @@ class _CadastroLembreteScreenState extends State<CadastroLembreteScreen> {
     }
   }
 
+  Future<void> _saveLembrete() async {
+    if (_tituloController.text.isNotEmpty &&
+        _selectedDate != null &&
+        _selectedTime != null) {
+      final lembrete = LembreteNotification(
+        titulo: _tituloController.text,
+        descricao: _descricaoController.text,
+        // dataHora: DateTime(
+        //   _selectedDate!.year,
+        //   _selectedDate!.month,
+        //   _selectedDate!.day,
+        //   _selectedTime!.hour,
+        //   _selectedTime!.minute,
+        // ),
+      );
+
+      // Lógica para salvar o lembrete no banco de dados ou onde preferir
+
+      // Enviar notificação push
+      final message = {
+        'notification': {
+          'title': 'Novo lembrete',
+          'body': 'Você tem um novo lembrete: ${lembrete.titulo}',
+        },
+        'data': {
+          'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+          'id': '1',
+          'status': 'done',
+        },
+        'to': '/topics/lembretes', // Tópico de notificação
+      };
+
+      await _firebaseMessaging.sendMessage();
+
+      debugPrint('Notificação enviada');
+
+      // Restante da lógica de salvamento do lembrete
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Cadastro de Lembrete'),
+        backgroundColor: Colors.blue, // Cor de fundo da AppBar
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -197,27 +162,7 @@ class _CadastroLembreteScreenState extends State<CadastroLembreteScreen> {
             ),
             const SizedBox(height: 20.0),
             ElevatedButton(
-              onPressed: () {
-                if (_tituloController.text.isNotEmpty &&
-                    _selectedDate != null &&
-                    _selectedTime != null) {
-                  final lembrete = Lembrete(
-                    titulo: _tituloController.text,
-                    descricao: _descricaoController.text,
-                    dataHora: DateTime(
-                      _selectedDate!.year,
-                      _selectedDate!.month,
-                      _selectedDate!.day,
-                      _selectedTime!.hour,
-                      _selectedTime!.minute,
-                    ),
-                  );
-
-                  scheduleNotification(lembrete.dataHora, lembrete.titulo);
-                  // Salve o lembrete no banco de dados ou onde você preferir
-                  // Adicione o código aqui para salvar o lembrete
-                }
-              },
+              onPressed: _saveLembrete,
               child: const Text('Salvar Lembrete'),
             ),
           ],

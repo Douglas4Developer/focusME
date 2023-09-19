@@ -1,11 +1,9 @@
-class Lembrete {
+class LembreteNotification {
   final String titulo;
   final String descricao;
-  final DateTime dataHora;
 
-  Lembrete({
+  LembreteNotification({
     required this.titulo,
     required this.descricao,
-    required this.dataHora,
   });
 }

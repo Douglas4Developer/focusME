@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:tdah_app/telas/dicas.dart';
 import 'package:tdah_app/telas/humor.dart';
 import 'package:tdah_app/telas/lembretes.dart';
+import 'package:tdah_app/telas/medicamentos.dart';
+import 'package:tdah_app/telas/sintomas.dart';
+import 'package:tdah_app/telas/tasks.dart';
 
 class OptionCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final Widget page;
 
-  OptionCard({
+  const OptionCard({
+    super.key,
     required this.icon,
     required this.title,
     required this.page,
@@ -61,13 +65,19 @@ List<OptionCard> options = [
   ),
   OptionCard(
     icon: Icons.table_rows,
-    title: 'Ansiedade',
-    page: DicasScreen(),
+    title: 'Sintomas',
+    page: SymptomScreen(),
   ),
+  OptionCard(
+    icon: Icons.health_and_safety,
+    title: 'Medicamentos',
+    page: MedicationScreen(),
+  ),
+
   OptionCard(
     icon: Icons.assignment,
     title: 'Tarefas',
-    page: DicasScreen(),
+    page: TaskScreen(),
   ),
   OptionCard(
     icon: Icons.alarm,
@@ -77,7 +87,7 @@ List<OptionCard> options = [
 
   OptionCard(
     icon: Icons.alarm,
-    title: 'Dicas',
+    title: 'Saiba Mais',
     page: DicasScreen(),
   ),
 
