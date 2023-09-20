@@ -1,16 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
+
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:tdah_app/telas/Dashaboard.dart';
 import 'package:tdah_app/telas/cards_op.dart';
+
+import 'package:tdah_app/telas/notification_screen.dart';
 import 'package:tdah_app/telas/sidebar.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key});
+
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+  int notificationCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Configurar a função de callback para receber notificações
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      // Ao receber uma nova notificação, atualize a contagem
+      setState(() {
+        notificationCount++;
+      });
+    });
+  }
+
+  // Restante do código da tela HomeScreen (o mesmo que você já tinha)
 
   @override
   Widget build(BuildContext context) {
     final User? user = FirebaseAuth.instance.currentUser;
+
+    // Função para navegar para a tela de notificações
+    void navigateToNotificationsScreen() {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => const NotificationsScreen(),
+        ),
+      );
+    }
 
     // Função para exibir o BottomSheet com opções
     void showOptionsBottomSheet() {
@@ -69,6 +104,31 @@ class HomeScreen extends StatelessWidget {
         ),
         title: Image.asset('assets/letra.png'),
         actions: [
+          // Adicione um botão para visualizar notificações
+          IconButton(
+            icon: Stack(
+              children: [
+                const Icon(Icons.notifications),
+                if (notificationCount > 0)
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: CircleAvatar(
+                      radius: 8,
+                      backgroundColor: Colors.red,
+                      child: Text(
+                        notificationCount.toString(),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            onPressed: navigateToNotificationsScreen,
+          ),
           IconButton(
             icon: const Icon(Icons.exit_to_app),
             onPressed: () async {

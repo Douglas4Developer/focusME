@@ -1,9 +1,8 @@
-// ignore_for_file: use_build_context_synchronously, library_private_types_in_public_api
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:tdah_app/telas/HomeScreen.dart';
-import 'package:tdah_app/telas/resgister_page.dart'; // Importe a tela de registro se já a tiver
+import 'package:tdah_app/telas/resgister_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -17,7 +16,17 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  late FirebaseMessaging _firebaseMessaging;
+
   bool _isLoading = false;
+  bool _obscurePassword =
+      true; // Variável para controlar a visibilidade da senha
+
+  @override
+  void initState() {
+    super.initState();
+    _firebaseMessaging = FirebaseMessaging.instance;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,11 +38,13 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                const SizedBox(height: 20),
+                // Adicione um widget Image para exibir o logotipo
                 Image.asset(
-                  'assets/letra.png',
+                  'assets/Logo.png',
                   width: 350,
-                  height: 120,
-                ),
+                  height: 250,
+                ), // Substitua pelo caminho do seu logotipo
                 const SizedBox(height: 20),
                 const Text(
                   'Bem-vindo de volta!',
@@ -52,8 +63,21 @@ class _LoginPageState extends State<LoginPage> {
                 _buildTextField(
                   labelText: 'Senha',
                   prefixIcon: Icons.lock,
-                  obscureText: true,
+                  obscureText:
+                      _obscurePassword, // Use a variável para controlar a visibilidade
                   controller: _passwordController,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
+                  ),
                 ),
                 const SizedBox(height: 20),
                 _isLoading
@@ -73,6 +97,7 @@ class _LoginPageState extends State<LoginPage> {
                               password: password,
                             );
                             if (userCredential.user != null) {
+                              _getFCMToken();
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
@@ -97,7 +122,6 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 10),
                 TextButton(
                   onPressed: () {
-                    // Navegue para a tela de registro
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -125,14 +149,26 @@ class _LoginPageState extends State<LoginPage> {
     required IconData prefixIcon,
     required TextEditingController controller,
     bool obscureText = false,
+    Widget? suffixIcon, // Adicione um campo para o ícone de sufixo
   }) {
     return TextField(
       controller: controller,
       decoration: InputDecoration(
         labelText: labelText,
         prefixIcon: Icon(prefixIcon),
+        suffixIcon: suffixIcon, // Use o ícone de sufixo fornecido
       ),
       obscureText: obscureText,
     );
+  }
+
+  void _getFCMToken() {
+    _firebaseMessaging.getToken().then((String? token) {
+      if (token != null) {
+        print("Token FCM: $token");
+      } else {
+        // Não foi possível obter o token FCM.
+      }
+    });
   }
 }
