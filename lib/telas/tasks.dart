@@ -5,12 +5,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Task {
   final String title;
-  final String description;
+  final String descricao;
   final bool isCompleted;
 
   Task({
     required this.title,
-    required this.description,
+    required this.descricao,
     required this.isCompleted,
   });
 }
@@ -43,12 +43,12 @@ class _TaskScreenState extends State<TaskScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _descricaoController = TextEditingController();
   bool _isCompleted = false;
 
   void _clearForm() {
     _titleController.clear();
-    _descriptionController.clear();
+    _descricaoController.clear();
     _isCompleted = false;
   }
 
@@ -57,13 +57,13 @@ class _TaskScreenState extends State<TaskScreen> {
     if (user != null) {
       final task = Task(
         title: _titleController.text,
-        description: _descriptionController.text,
+        descricao: _descricaoController.text,
         isCompleted: _isCompleted,
       );
 
       await _firestore.collection('tasks').add({
         'title': task.title,
-        'description': task.description,
+        'descricao': task.descricao,
         'isCompleted': task.isCompleted,
         'userId': user.uid,
       });
@@ -89,7 +89,7 @@ class _TaskScreenState extends State<TaskScreen> {
               decoration: const InputDecoration(labelText: 'Título da Tarefa'),
             ),
             TextFormField(
-              controller: _descriptionController,
+              controller: _descricaoController,
               decoration:
                   const InputDecoration(labelText: 'Descrição da Tarefa'),
             ),

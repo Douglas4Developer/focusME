@@ -1,11 +1,11 @@
-class Medication {
+class Medicacao {
   final String name;
-  final String dosage;
+  final String dosagem;
   final DateTime dateTime;
 
-  Medication({
+  Medicacao({
     required this.name,
-    required this.dosage,
+    required this.dosagem,
     required this.dateTime,
   });
 }

@@ -43,7 +43,7 @@ class _DicasScreenState extends State<DicasScreen> {
             _dicas = articles
                 .map((item) => Dica(
                       titulo: item['title'] ?? '',
-                      descricao: item['description'] ?? '',
+                      descricao: item['descricao'] ?? '',
                       url: item['url'] ?? '', // URL da notícia completa
                     ))
                 .toList();

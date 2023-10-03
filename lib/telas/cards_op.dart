@@ -68,12 +68,12 @@ List<OptionCard> options = [
   OptionCard(
     icon: Icons.table_rows,
     title: 'Sintomas',
-    page: SymptomScreen(),
+    page: SintomaScreen(),
   ),
   OptionCard(
     icon: Icons.health_and_safety,
     title: 'Medicamentos',
-    page: MedicationScreen(),
+    page: MedicacaoScreen(),
   ),
 
   OptionCard(

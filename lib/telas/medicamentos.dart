@@ -6,26 +6,26 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:tdah_app/models/medicamentos_model.dart';
 import 'package:timezone/timezone.dart' as tz;
 
-class MedicationScreen extends StatefulWidget {
+class MedicacaoScreen extends StatefulWidget {
   @override
-  _MedicationScreenState createState() => _MedicationScreenState();
+  _MedicacaoScreenState createState() => _MedicacaoScreenState();
 }
 
-class _MedicationScreenState extends State<MedicationScreen> {
+class _MedicacaoScreenState extends State<MedicacaoScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _dosageController = TextEditingController();
+  final TextEditingController _dosagemController = TextEditingController();
   DateTime? _selectedDateTime;
-  List<Medication> _medications = [];
+  List<Medicacao> _medications = [];
 
   @override
   void initState() {
     super.initState();
     _initializeNotifications();
-    _loadMedications();
+    _loadMedicacaos();
   }
 
   void _initializeNotifications() {
@@ -38,25 +38,25 @@ class _MedicationScreenState extends State<MedicationScreen> {
 
   void _clearForm() {
     _nameController.clear();
-    _dosageController.clear();
+    _dosagemController.clear();
     _selectedDateTime = null;
   }
 
-  Future<void> _addMedication() async {
+  Future<void> _addMedicacao() async {
     final user = _auth.currentUser;
     if (user != null) {
       final tz.TZDateTime scheduledDateTime =
           tz.TZDateTime.from(_selectedDateTime!, tz.local);
 
-      final medication = Medication(
+      final medication = Medicacao(
         name: _nameController.text,
-        dosage: _dosageController.text,
+        dosagem: _dosagemController.text,
         dateTime: scheduledDateTime,
       );
 
       await _firestore.collection('medications').add({
         'name': medication.name,
-        'dosage': medication.dosage,
+        'dosagem': medication.dosagem,
         'dateTime': scheduledDateTime.toUtc(), // Store as UTC in Firestore
         'userId': user.uid,
       });
@@ -64,11 +64,11 @@ class _MedicationScreenState extends State<MedicationScreen> {
       _scheduleNotification(medication);
 
       _clearForm();
-      _loadMedications();
+      _loadMedicacaos();
     }
   }
 
-  Future<void> _loadMedications() async {
+  Future<void> _loadMedicacaos() async {
     final user = _auth.currentUser;
     if (user != null) {
       final snapshot = await _firestore
@@ -78,9 +78,9 @@ class _MedicationScreenState extends State<MedicationScreen> {
 
       setState(() {
         _medications = snapshot.docs
-            .map((doc) => Medication(
+            .map((doc) => Medicacao(
                   name: doc['name'],
-                  dosage: doc['dosage'],
+                  dosagem: doc['dosagem'],
                   dateTime: (doc['dateTime'] as Timestamp).toDate(),
                 ))
             .toList();
@@ -88,10 +88,10 @@ class _MedicationScreenState extends State<MedicationScreen> {
     }
   }
 
-  Future<void> _scheduleNotification(Medication medication) async {
+  Future<void> _scheduleNotification(Medicacao medication) async {
     const androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'medication_channel',
-      'Medications',
+      'Medicacaos',
       //   'Notification for scheduled medications',
       importance: Importance.high,
       priority: Priority.high,
@@ -101,8 +101,8 @@ class _MedicationScreenState extends State<MedicationScreen> {
 
     await _notificationsPlugin.zonedSchedule(
       medication.hashCode,
-      'Medication Reminder',
-      'Take ${medication.name}, Dosage: ${medication.dosage}',
+      'Medicacao Reminder',
+      'Take ${medication.name}, Dosage: ${medication.dosagem}',
       tz.TZDateTime.from(medication.dateTime, tz.local),
       platformChannelSpecifics,
       //     androidAllowWhileIdle: true,
@@ -144,7 +144,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
-        title: const Text('Medication Tracker'),
+        title: const Text('Medicacao Tracker'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -153,10 +153,10 @@ class _MedicationScreenState extends State<MedicationScreen> {
           children: [
             TextFormField(
               controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Medication Name'),
+              decoration: const InputDecoration(labelText: 'Medicacao Name'),
             ),
             TextFormField(
-              controller: _dosageController,
+              controller: _dosagemController,
               decoration: const InputDecoration(labelText: 'Dosage'),
             ),
             Row(
@@ -174,12 +174,12 @@ class _MedicationScreenState extends State<MedicationScreen> {
             ),
             const SizedBox(height: 16.0),
             ElevatedButton(
-              onPressed: _addMedication,
-              child: const Text('Add Medication'),
+              onPressed: _addMedicacao,
+              child: const Text('Add Medicacao'),
             ),
             const SizedBox(height: 16.0),
             const Text(
-              'Medications Scheduled:',
+              'Medicacaos Scheduled:',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             Expanded(
@@ -189,7 +189,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
                   final medication = _medications[index];
                   return ListTile(
                     title: Text(medication.name),
-                    subtitle: Text('Dosage: ${medication.dosage}'),
+                    subtitle: Text('Dosage: ${medication.dosagem}'),
                     trailing: Text(
                       medication.dateTime.toString(),
                     ),

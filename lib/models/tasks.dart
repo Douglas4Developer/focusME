@@ -1,11 +1,11 @@
 class Task {
   final String title;
-  final String description;
+  final String descricao;
   final bool isCompleted;
 
   Task({
     required this.title,
-    required this.description,
+    required this.descricao,
     required this.isCompleted,
     required DateTime dateTime,
   });

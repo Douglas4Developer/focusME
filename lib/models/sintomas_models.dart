@@ -1,11 +1,11 @@
-class Symptom {
+class Sintoma {
   final String name;
-  final String description;
+  final String descricao;
   final DateTime dateTime;
 
-  Symptom({
+  Sintoma({
     required this.name,
-    required this.description,
+    required this.descricao,
     required this.dateTime,
   });
 }
