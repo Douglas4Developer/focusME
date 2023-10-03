@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 // Importar o pacote de gráficos
 import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
+import 'package:tdah_app/pomodoro/store/pomodoro.store.dart';
 import 'package:tdah_app/telas/HomeScreen.dart';
 import 'package:tdah_app/telas/SplashScreen.dart';
 import 'package:tdah_app/telas/login.dart';
@@ -21,14 +23,21 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'TDAH App',
-      initialRoute: '/', // Rota inicial
-      routes: {
-        '/': (context) => const SplashScreen(), // Tela de login
-        '/home': (context) => const HomeScreen(), // Tela principal
-        '/login': (context) => const LoginPage(), // Tela principal
-      },
+    return MultiProvider(
+      providers: [
+        Provider<PomodoroStore>(
+          create: (_) => PomodoroStore(),
+        ),
+      ],
+      child: MaterialApp(
+        title: 'TDAH App',
+        initialRoute: '/', // Rota inicial
+        routes: {
+          '/': (context) => const SplashScreen(), // Tela de login
+          '/home': (context) => const HomeScreen(), // Tela principal
+          '/login': (context) => const LoginPage(), // Tela principal
+        },
+      ),
     );
   }
 }

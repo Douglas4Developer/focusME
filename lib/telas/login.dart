@@ -97,7 +97,10 @@ class _LoginPageState extends State<LoginPage> {
                               password: password,
                             );
                             if (userCredential.user != null) {
+                              // Após o usuário ter feito login com sucesso,
+                              // agora podemos obter o token FCM
                               _getFCMToken();
+
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
@@ -166,6 +169,7 @@ class _LoginPageState extends State<LoginPage> {
     _firebaseMessaging.getToken().then((String? token) {
       if (token != null) {
         print("Token FCM: $token");
+        // Aqui você pode enviar o token FCM para o seu servidor ou realizar outras ações
       } else {
         // Não foi possível obter o token FCM.
       }

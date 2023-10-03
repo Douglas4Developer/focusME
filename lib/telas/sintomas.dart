@@ -141,6 +141,7 @@ class _SymptomScreenState extends State<SymptomScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Symptom Tracker'),
+        backgroundColor: Colors.blue,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

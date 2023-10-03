@@ -27,12 +27,23 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
     // Solicitar permissão para receber notificações (opcional)
     _firebaseMessaging.requestPermission();
+
+    // Inicialmente, você pode obter as notificações armazenadas localmente (se houver)
+    _firebaseMessaging.getInitialMessage().then((RemoteMessage? message) {
+      if (message != null) {
+        setState(() {
+          notifications.add(
+              "Notificação em primeiro plano: ${message.notification?.title}");
+        });
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.blue,
         title: const Text('Notificações'),
       ),
       body: ListView.builder(

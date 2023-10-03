@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:tdah_app/pomodoro/pages/Pomodoro.dart';
+
 import 'package:tdah_app/telas/dicas.dart';
 import 'package:tdah_app/telas/humor.dart';
 import 'package:tdah_app/telas/lembretes.dart';
@@ -53,10 +55,10 @@ class OptionCard extends StatelessWidget {
 }
 
 List<OptionCard> options = [
-  OptionCard(
+  const OptionCard(
     icon: Icons.book,
     title: 'Concentração',
-    page: DicasScreen(),
+    page: Pomodoro(),
   ),
   OptionCard(
     icon: Icons.mood,

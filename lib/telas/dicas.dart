@@ -59,6 +59,7 @@ class _DicasScreenState extends State<DicasScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.blue,
         title: const Text('Dicas para TDAH'),
       ),
       body: ListView.builder(

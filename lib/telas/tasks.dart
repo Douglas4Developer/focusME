@@ -76,6 +76,7 @@ class _TaskScreenState extends State<TaskScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.blue,
         title: const Text('Cadastro de Tarefas'),
       ),
       body: Padding(

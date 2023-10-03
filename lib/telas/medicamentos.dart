@@ -143,6 +143,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.blue,
         title: const Text('Medication Tracker'),
       ),
       body: Padding(
