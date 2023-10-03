@@ -2,40 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
-class Task {
-  final String title;
-  final String descricao;
-  final bool isCompleted;
-
-  Task({
-    required this.title,
-    required this.descricao,
-    required this.isCompleted,
-  });
-}
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Task App',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: TaskScreen(),
-    );
-  }
-}
+import 'package:tdah_app/models/tasks.dart';
 
 class TaskScreen extends StatefulWidget {
+  const TaskScreen({super.key});
+
   @override
+  // ignore: library_private_types_in_public_api
   _TaskScreenState createState() => _TaskScreenState();
 }
 
@@ -59,12 +32,14 @@ class _TaskScreenState extends State<TaskScreen> {
         title: _titleController.text,
         descricao: _descricaoController.text,
         isCompleted: _isCompleted,
+        dateTime: DateTime.now(), // Set the dateTime to the current time
       );
 
-      await _firestore.collection('tasks').add({
-        'title': task.title,
+      await _firestore.collection('tarefas').add({
+        'titulo': task.title,
         'descricao': task.descricao,
         'isCompleted': task.isCompleted,
+        'dateTime': task.dateTime, // Save the dateTime field in Firestore
         'userId': user.uid,
       });
 

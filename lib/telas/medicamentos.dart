@@ -19,7 +19,7 @@ class _MedicacaoScreenState extends State<MedicacaoScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _dosagemController = TextEditingController();
   DateTime? _selectedDateTime;
-  List<Medicacao> _medications = [];
+  List<Medicacao> _medicacoes = [];
 
   @override
   void initState() {
@@ -54,7 +54,7 @@ class _MedicacaoScreenState extends State<MedicacaoScreen> {
         dateTime: scheduledDateTime,
       );
 
-      await _firestore.collection('medications').add({
+      await _firestore.collection('medicacoes').add({
         'name': medication.name,
         'dosagem': medication.dosagem,
         'dateTime': scheduledDateTime.toUtc(), // Store as UTC in Firestore
@@ -72,12 +72,12 @@ class _MedicacaoScreenState extends State<MedicacaoScreen> {
     final user = _auth.currentUser;
     if (user != null) {
       final snapshot = await _firestore
-          .collection('medications')
+          .collection('medicacoes')
           .where('userId', isEqualTo: user.uid)
           .get();
 
       setState(() {
-        _medications = snapshot.docs
+        _medicacoes = snapshot.docs
             .map((doc) => Medicacao(
                   name: doc['name'],
                   dosagem: doc['dosagem'],
@@ -92,7 +92,7 @@ class _MedicacaoScreenState extends State<MedicacaoScreen> {
     const androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'medication_channel',
       'Medicacaos',
-      //   'Notification for scheduled medications',
+      //   'Notification for scheduled  medicacoes',
       importance: Importance.high,
       priority: Priority.high,
     );
@@ -184,9 +184,9 @@ class _MedicacaoScreenState extends State<MedicacaoScreen> {
             ),
             Expanded(
               child: ListView.builder(
-                itemCount: _medications.length,
+                itemCount: _medicacoes.length,
                 itemBuilder: (context, index) {
-                  final medication = _medications[index];
+                  final medication = _medicacoes[index];
                   return ListTile(
                     title: Text(medication.name),
                     subtitle: Text('Dosage: ${medication.dosagem}'),
