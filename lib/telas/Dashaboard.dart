@@ -1,9 +1,100 @@
 // ignore: file_names
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 
-class DashboardProgress extends StatelessWidget {
-  const DashboardProgress({super.key});
+class DashboardProgress extends StatefulWidget {
+  @override
+  _DashboardProgressState createState() => _DashboardProgressState();
+}
+
+class _DashboardProgressState extends State<DashboardProgress> {
+  double _averageHumor = 0.0; // Valor inicial
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHumorData();
+
+    // Configurar um ouvinte de stream para atualizações nos registros de humor
+    _setUpHumorStream();
+  }
+
+  Future<void> _loadHumorData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return; // Sair se o usuário não estiver autenticado
+    }
+
+    final uid = user.uid;
+
+    final QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('humores_registrados')
+        .where('uid', isEqualTo: uid) // Filtrar por UID do usuário
+        .get();
+
+    double totalWeightedHumor = 0.0;
+    double totalWeight = 0.0;
+
+    querySnapshot.docs.forEach((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      final humor = data['humor'];
+      final weight = data['peso'] ?? 1.0; // Peso padrão se não houver peso
+
+      // Calcular o humor ponderado com base no peso
+      totalWeightedHumor += _getHumorValue(humor) * weight;
+      totalWeight += weight;
+    });
+
+    if (totalWeight > 0) {
+      // Calcular a média do humor ponderado
+      _averageHumor = totalWeightedHumor / totalWeight;
+    } else {
+      _averageHumor = 0.0;
+    }
+
+    setState(() {});
+  }
+
+  double _getHumorValue(String humor) {
+    // Mapear os valores de humor para os respectivos números
+    switch (humor) {
+      case 'Feliz':
+        return 1.0;
+      case 'Triste':
+        return 0.1;
+      case 'Preocupado':
+        return 0.5;
+      case 'Irritado':
+        return 0.2;
+      case 'Empolgado':
+        return 0.8;
+      case 'Ansioso':
+        return 0.4;
+      default:
+        return 0.0;
+    }
+  }
+
+  void _setUpHumorStream() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return; // Sair se o usuário não estiver autenticado
+    }
+
+    final uid = user.uid;
+
+    // Criar um stream que ouve as alterações nos registros de humor
+    FirebaseFirestore.instance
+        .collection('humores_registrados')
+        .where('uid', isEqualTo: uid)
+        .snapshots()
+        .listen((QuerySnapshot snapshot) {
+      // Quando houver uma atualização nos registros, recarregue os dados
+      _loadHumorData();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,20 +111,18 @@ class DashboardProgress extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8.0),
-          const Text(
-            'Emoção: Feliz',
-            style: TextStyle(
+          Text(
+            'Média de Humor: ${(_averageHumor * 100).toStringAsFixed(1)}%',
+            style: const TextStyle(
               fontSize: 16.0,
             ),
           ),
           const SizedBox(height: 8.0),
           LinearProgressIndicator(
-            value: 0.75, // Valor do progresso (0 a 1)
+            value: _averageHumor, // Valor da média de humor
             backgroundColor: Colors.grey[300],
             valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
           ),
-          const SizedBox(height: 16.0),
-          EmotionChart.withSampleData(), // Gráfico de emoções
         ],
       ),
     );

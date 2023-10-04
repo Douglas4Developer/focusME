@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:tdah_app/models/lembretes_model.dart';
 
 class CadastroLembreteScreen extends StatefulWidget {
   @override
@@ -17,9 +18,14 @@ class _CadastroLembreteScreenState extends State<CadastroLembreteScreen> {
   // Initialize Firestore
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  // Lista de lembretes
+  List<Lembrete> _lembretes = [];
+
   @override
   void initState() {
     super.initState();
+    // Carregue os lembretes quando o componente for inicializado
+    _loadLembretes();
   }
 
   Future<void> _showDatePicker() async {
@@ -68,9 +74,6 @@ class _CadastroLembreteScreenState extends State<CadastroLembreteScreen> {
         'dateTime': _selectedDateTime, // Save the selected date and time
       });
 
-      // Schedule the notification
-      _scheduleNotification(titulo, descricao, _selectedDateTime!);
-
       // Clear the form
       _tituloController.clear();
       _descricaoController.clear();
@@ -83,6 +86,9 @@ class _CadastroLembreteScreenState extends State<CadastroLembreteScreen> {
           content: Text('Lembrete salvo com sucesso!'),
         ),
       );
+
+      // Atualiza a lista de lembretes
+      _loadLembretes();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -93,44 +99,19 @@ class _CadastroLembreteScreenState extends State<CadastroLembreteScreen> {
     }
   }
 
-  // Schedule a notification using Firebase Messaging
-  void _scheduleNotification(
-      String titulo, String descricao, DateTime dateTime) async {
-    // Define a unique identifier for this notification
-    final int notificationId = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+  Future<void> _loadLembretes() async {
+    final snapshots = await _firestore.collection('lembretes').get();
 
-    // Create a notification message
-    final notification = RemoteNotification(
-      title: 'Novo lembrete',
-      body: 'Você tem um novo lembrete: $titulo',
-    );
-
-    // Create a data message
-    final data = <String, dynamic>{
-      'click_action': 'FLUTTER_NOTIFICATION_CLICK',
-      'id': notificationId.toString(),
-      'status': 'done',
-    };
-
-    // Create the message
-    final message = RemoteMessage(
-      data: data,
-      notification: notification,
-      messageId: notificationId.toString(),
-    );
-
-    // // Schedule the notification using Firebase Cloud Messaging
-    // await _firebaseMessaging.scheduleLocalNotification(message, const LocalNotificationSchedule(
-    //   id: notificationId,
-    //   title: 'Novo lembrete',
-    //   body: 'Você tem um novo lembrete: $titulo',
-    //   ticker: 'ticker',
-    //   tag: 'tag',
-    //   scheduledDate: dateTime,
-    //   payload: notificationId.toString(),
-    // ));
-
-    debugPrint('Notificação agendada para $dateTime');
+    setState(() {
+      _lembretes = snapshots.docs.map((doc) {
+        final data = doc.data();
+        return Lembrete(
+          titulo: data['titulo'] ?? '',
+          descricao: data['descricao'] ?? '',
+          dateTime: (data['dateTime'] as Timestamp).toDate(),
+        );
+      }).toList();
+    });
   }
 
   @override
@@ -192,6 +173,26 @@ class _CadastroLembreteScreenState extends State<CadastroLembreteScreen> {
             ElevatedButton(
               onPressed: _saveLembrete,
               child: const Text('Salvar Lembrete'),
+            ),
+            const SizedBox(height: 20.0),
+            const Text(
+              'Lista de Lembretes:',
+              style: TextStyle(fontSize: 18.0),
+            ),
+            Expanded(
+              child: ListView.builder(
+                itemCount: _lembretes.length,
+                itemBuilder: (context, index) {
+                  final lembrete = _lembretes[index];
+                  return ListTile(
+                    title: Text(lembrete.titulo),
+                    subtitle: Text(lembrete.descricao),
+                    trailing: Text(
+                      DateFormat('dd/MM/yyyy HH:mm').format(lembrete.dateTime),
+                    ),
+                  );
+                },
+              ),
             ),
           ],
         ),

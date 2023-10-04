@@ -14,16 +14,16 @@ abstract class _PomodoroStore with Store {
   bool iniciado = false;
 
   @observable
-  int minutos = 2;
+  int minutos = 25; // Valor padrão para concentração (25 minutos)
 
   @observable
   int segundos = 0;
 
   @observable
-  int tempoTrabalho = 2;
+  int tempoTrabalho = 25; // Valor padrão para concentração (25 minutos)
 
   @observable
-  int tempoDescanso = 1;
+  int tempoDescanso = 5; // Valor padrão para tempo de descanso (5 minutos)
 
   @observable
   TipoIntervalo tipoIntervalo = TipoIntervalo.trabalho;
@@ -36,7 +36,7 @@ abstract class _PomodoroStore with Store {
   @action
   void iniciar() {
     iniciado = true;
-    cronometro = Timer.periodic(const Duration(milliseconds: 10), (timer) {
+    cronometro = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (minutos == 0 && segundos == 0) {
         _trocarTipoIntervalo();
       } else if (segundos == 0) {

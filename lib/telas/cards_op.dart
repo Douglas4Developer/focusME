@@ -70,13 +70,13 @@ List<OptionCard> options = [
     title: 'Sintomas',
     page: SintomaScreen(),
   ),
-  OptionCard(
+  const OptionCard(
     icon: Icons.health_and_safety,
     title: 'Medicamentos',
     page: MedicacaoScreen(),
   ),
 
-  OptionCard(
+  const OptionCard(
     icon: Icons.assignment,
     title: 'Tarefas',
     page: TaskScreen(),

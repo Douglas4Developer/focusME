@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:intl/intl.dart';
 import 'package:tdah_app/models/medicamentos_model.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 class MedicacaoScreen extends StatefulWidget {
+  const MedicacaoScreen({Key? key}) : super(key: key);
+
   @override
   _MedicacaoScreenState createState() => _MedicacaoScreenState();
 }
@@ -25,7 +27,7 @@ class _MedicacaoScreenState extends State<MedicacaoScreen> {
   void initState() {
     super.initState();
     _initializeNotifications();
-    _loadMedicacaos();
+    _loadMedicacoes();
   }
 
   void _initializeNotifications() {
@@ -54,21 +56,26 @@ class _MedicacaoScreenState extends State<MedicacaoScreen> {
         dateTime: scheduledDateTime,
       );
 
-      await _firestore.collection('medicacoes').add({
-        'name': medication.name,
-        'dosagem': medication.dosagem,
-        'dateTime': scheduledDateTime.toUtc(), // Store as UTC in Firestore
-        'userId': user.uid,
-      });
+      try {
+        await _firestore.collection('medicacoes').add({
+          'name': medication.name,
+          'dosagem': medication.dosagem,
+          'dateTime': scheduledDateTime.toUtc(), // Store as UTC in Firestore
+          'userId': user.uid,
+        });
 
-      _scheduleNotification(medication);
+        _scheduleNotification(medication);
 
-      _clearForm();
-      _loadMedicacaos();
+        _clearForm();
+        _loadMedicacoes();
+      } catch (e) {
+        print('Error adding medication: $e');
+        // Handle the error gracefully, show a snackbar, or perform other error handling.
+      }
     }
   }
 
-  Future<void> _loadMedicacaos() async {
+  Future<void> _loadMedicacoes() async {
     final user = _auth.currentUser;
     if (user != null) {
       final snapshot = await _firestore
@@ -89,14 +96,14 @@ class _MedicacaoScreenState extends State<MedicacaoScreen> {
   }
 
   Future<void> _scheduleNotification(Medicacao medication) async {
-    const androidPlatformChannelSpecifics = AndroidNotificationDetails(
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+        AndroidNotificationDetails(
       'medication_channel',
-      'Medicacaos',
-      //   'Notification for scheduled  medicacoes',
+      'Medicacoes',
       importance: Importance.high,
       priority: Priority.high,
     );
-    const platformChannelSpecifics =
+    const NotificationDetails platformChannelSpecifics =
         NotificationDetails(android: androidPlatformChannelSpecifics);
 
     await _notificationsPlugin.zonedSchedule(
@@ -105,25 +112,42 @@ class _MedicacaoScreenState extends State<MedicacaoScreen> {
       'Take ${medication.name}, Dosage: ${medication.dosagem}',
       tz.TZDateTime.from(medication.dateTime, tz.local),
       platformChannelSpecifics,
-      //     androidAllowWhileIdle: true,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
     );
   }
 
+  Widget _buildMedicacaoList() {
+    return Expanded(
+      child: ListView.builder(
+        itemCount: _medicacoes.length,
+        itemBuilder: (context, index) {
+          final medication = _medicacoes[index];
+          return ListTile(
+            title: Text(medication.name),
+            subtitle: Text('Dosage: ${medication.dosagem}'),
+            trailing: Text(
+              DateFormat('dd/MM/yyyy HH:mm').format(medication.dateTime),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   Future<void> _showDateTimePicker() async {
-    final DateTime picked = (await showDatePicker(
+    final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime(2101),
-    ))!;
+    );
 
     if (picked != null) {
-      final TimeOfDay pickedTime = (await showTimePicker(
+      final TimeOfDay? pickedTime = await showTimePicker(
         context: context,
         initialTime: TimeOfDay.now(),
-      ))!;
+      );
 
       if (pickedTime != null) {
         setState(() {
@@ -144,7 +168,7 @@ class _MedicacaoScreenState extends State<MedicacaoScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
-        title: const Text('Medicacao Tracker'),
+        title: const Text('Medicacao Rastreador'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -153,20 +177,20 @@ class _MedicacaoScreenState extends State<MedicacaoScreen> {
           children: [
             TextFormField(
               controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Medicacao Name'),
+              decoration: const InputDecoration(labelText: 'Nome da Medicação'),
             ),
             TextFormField(
               controller: _dosagemController,
-              decoration: const InputDecoration(labelText: 'Dosage'),
+              decoration: const InputDecoration(labelText: 'Dosagem'),
             ),
             Row(
               children: [
-                const Text('Schedule:'),
+                const Text('Agendar:'),
                 TextButton(
                   onPressed: _showDateTimePicker,
                   child: Text(
                     _selectedDateTime == null
-                        ? 'Select Date and Time'
+                        ? 'Selecione a data e hora:'
                         : _selectedDateTime.toString(),
                   ),
                 ),
@@ -175,28 +199,14 @@ class _MedicacaoScreenState extends State<MedicacaoScreen> {
             const SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: _addMedicacao,
-              child: const Text('Add Medicacao'),
+              child: const Text('Adicionar Medicacao'),
             ),
             const SizedBox(height: 16.0),
             const Text(
-              'Medicacaos Scheduled:',
+              'Medicações Agendadas:',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _medicacoes.length,
-                itemBuilder: (context, index) {
-                  final medication = _medicacoes[index];
-                  return ListTile(
-                    title: Text(medication.name),
-                    subtitle: Text('Dosage: ${medication.dosagem}'),
-                    trailing: Text(
-                      medication.dateTime.toString(),
-                    ),
-                  );
-                },
-              ),
-            ),
+            _buildMedicacaoList(),
           ],
         ),
       ),

@@ -14,6 +14,9 @@ class Pomodoro extends StatelessWidget {
     final store = Provider.of<PomodoroStore>(context);
     final soundManager = SoundManager();
 
+    final isMobile = MediaQuery.of(context).size.width <
+        600; // Exemplo de verificação de tamanho de tela
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -21,59 +24,106 @@ class Pomodoro extends StatelessWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            // Implemente a lógica para voltar à tela anterior aqui
+            Navigator.of(context)
+                .pop(); // Adicione essa linha para voltar à tela anterior
           },
         ),
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Expanded(
-            child: Cronometro(),
+          const Flex(
+            direction: Axis.horizontal,
+            clipBehavior: Clip.none,
+            children: [
+              Cronometro(),
+            ],
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 40),
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
             child: Observer(
-              builder: (_) => Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+              builder: (_) => Column(
                 children: [
-                  EntradaTempo(
-                    titulo: 'Trabalho',
-                    valor: store.tempoTrabalho,
-                    inc: store.iniciado && store.estaTrabalhando()
-                        ? null
-                        : store.incrementarTempoTrabalho,
-                    dec: store.iniciado && store.estaTrabalhando()
-                        ? null
-                        : store.decrementarTempoTrabalho,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      EntradaTempo(
+                        titulo: 'Período de Concentração',
+                        valor: store.tempoTrabalho,
+                        inc: store.iniciado && store.estaTrabalhando()
+                            ? null
+                            : store.incrementarTempoTrabalho,
+                        dec: store.iniciado && store.estaTrabalhando()
+                            ? null
+                            : store.decrementarTempoTrabalho,
+                      ),
+                      EntradaTempo(
+                        titulo: 'Período de Descanso',
+                        valor: store.tempoDescanso,
+                        inc: store.iniciado && store.estaDescansando()
+                            ? null
+                            : store.incrementarTempoDescanso,
+                        dec: store.iniciado && store.estaDescansando()
+                            ? null
+                            : store.decrementarTempoDescanso,
+                      ),
+                    ],
                   ),
-                  EntradaTempo(
-                    titulo: 'Descanso',
-                    valor: store.tempoDescanso,
-                    inc: store.iniciado && store.estaDescansando()
-                        ? null
-                        : store.incrementarTempoDescanso,
-                    dec: store.iniciado && store.estaDescansando()
-                        ? null
-                        : store.decrementarTempoDescanso,
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      store.salvarRegistroConcentracao(store.tempoTrabalho);
+                      // Tocar som para melhorar a concentração
+                      soundManager.playSound('assets/concentration.mp3');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Registro de Concentração Salvo!'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      padding: EdgeInsets.symmetric(
+                        vertical: isMobile
+                            ? 12
+                            : 16, // Ajuste o tamanho verticalmente
+                        horizontal: isMobile
+                            ? 12
+                            : 24, // Ajuste o tamanho horizontalmente
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.check,
+                            color: Colors.white,
+                            size: isMobile
+                                ? 24
+                                : 32), // Ajuste o tamanho do ícone
+                        SizedBox(width: 8),
+                        Text(
+                          'Registrar Concentração',
+                          style: TextStyle(
+                            fontSize:
+                                isMobile ? 14 : 16, // Ajuste o tamanho da fonte
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              store.salvarRegistroConcentracao(store.tempoTrabalho);
-              // Tocar som para melhorar a concentração
-              soundManager.playSound('assets/concentration.mp3');
-            },
-            child: Text('Salvar Registro de Concentração'),
           ),
         ],
       ),
     );
   }
 }
+
+// Resto do código permanece o mesmo
 
 class ConcentracaoRecord {
   final int tempoConcentracao;

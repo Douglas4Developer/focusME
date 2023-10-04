@@ -18,6 +18,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   int notificationCount = 0;
+  PageController _pageController = PageController(initialPage: 0);
+  int currentPageIndex = 0; // Adicione a declaração aqui
 
   @override
   void initState() {
@@ -92,17 +94,17 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
+    // Defina uma lista de DashBoardProgress
+    final List<DashboardProgress> dashboardProgressWidgets = [
+      DashboardProgress(),
+      DashboardProgress(),
+      DashboardProgress(),
+      // Adicione quantos componentes DashboardProgress você desejar
+    ];
+
     return Scaffold(
       appBar: AppBar(
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () {
-              Scaffold.of(context).openDrawer();
-            },
-          ),
-        ),
-        title: Image.asset('assets/letra.png'),
+        title: Image.asset('assets/letra.png'), // Adicione sua logo aqui
         actions: [
           // Adicione um botão para visualizar notificações
           IconButton(
@@ -156,8 +158,53 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const SizedBox(height: 16.0),
-            const DashboardProgress(),
-            const SizedBox(height: 16.0),
+
+            // Use um PageView para criar várias páginas deslizáveis
+            SizedBox(
+              height: 120.0,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  PageView.builder(
+                    controller: _pageController,
+                    itemCount: dashboardProgressWidgets.length,
+                    itemBuilder: (context, index) {
+                      return dashboardProgressWidgets[index];
+                    },
+                  ),
+                  Positioned(
+                    left: 16.0,
+                    child: currentPageIndex > 0
+                        ? IconButton(
+                            icon: Icon(Icons.arrow_back),
+                            onPressed: () {
+                              _pageController.previousPage(
+                                duration: Duration(milliseconds: 300),
+                                curve: Curves.easeInOut,
+                              );
+                            },
+                          )
+                        : Container(),
+                  ),
+                  Positioned(
+                    right: 16.0,
+                    child:
+                        currentPageIndex < dashboardProgressWidgets.length - 1
+                            ? IconButton(
+                                icon: Icon(Icons.arrow_forward),
+                                onPressed: () {
+                                  _pageController.nextPage(
+                                    duration: Duration(milliseconds: 300),
+                                    curve: Curves.easeInOut,
+                                  );
+                                },
+                              )
+                            : Container(),
+                  ),
+                ],
+              ),
+            ),
+
             const FilterOptions(),
             const SizedBox(height: 16.0),
             GridView.builder(

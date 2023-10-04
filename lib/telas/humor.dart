@@ -1,5 +1,5 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:tdah_app/models/humor_model.dart';
 import 'package:intl/intl.dart';
@@ -11,6 +11,7 @@ class CadastroHumorScreen extends StatefulWidget {
 
 class _CadastroHumorScreenState extends State<CadastroHumorScreen> {
   String _selectedHumor = 'Feliz';
+  double _selectedWeight = 1.0; // Peso inicial
   final TextEditingController _observacaoController = TextEditingController();
   final List<String> _humorOptions = [
     'Feliz',
@@ -20,6 +21,17 @@ class _CadastroHumorScreenState extends State<CadastroHumorScreen> {
     'Empolgado',
     'Ansioso',
   ];
+
+  // Define um mapa de pesos para cada humor
+  final Map<String, double> _humorWeights = {
+    'Feliz': 1.0,
+    'Triste': 0.1,
+    'Preocupado': 0.5,
+    'Irritado': 0.2,
+    'Empolgado': 0.8,
+    'Ansioso': 0.4,
+  };
+
   // Lista de humores registrados
   List<HumorRegistro> _humorRegistros = [];
 
@@ -79,6 +91,12 @@ class _CadastroHumorScreenState extends State<CadastroHumorScreen> {
             _buildHumorDropdown(), // Função para criar o dropdown de humor
             const SizedBox(height: 20.0),
             const Text(
+              'Peso do Humor:',
+              style: TextStyle(fontSize: 18.0),
+            ),
+            _buildHumorWeightSlider(), // Função para criar o controle deslizante de peso
+            const SizedBox(height: 20.0),
+            const Text(
               'Observação (opcional):',
               style: TextStyle(fontSize: 18.0),
             ),
@@ -107,7 +125,21 @@ class _CadastroHumorScreenState extends State<CadastroHumorScreen> {
     );
   }
 
-  // Restante do código permanece o mesmo
+  // Função para criar o controle deslizante de peso do humor
+  Widget _buildHumorWeightSlider() {
+    return Slider(
+      value: _selectedWeight,
+      onChanged: (double newValue) {
+        setState(() {
+          _selectedWeight = newValue;
+        });
+      },
+      min: 0.1, // Valor mínimo de peso
+      max: 1.0, // Valor máximo de peso
+      divisions: 9, // Número de divisões entre min e max
+      label: _selectedWeight.toStringAsFixed(1), // Exibe o valor selecionado
+    );
+  }
 
   // Função para criar o dropdown de humor
   Widget _buildHumorDropdown() {
